@@ -1,0 +1,9 @@
+alembic
+APScheduler
+kombu
+fastapi
+redis
+SQLAlchemy
+uvicorn
+loguru
+
