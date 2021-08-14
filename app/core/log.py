@@ -75,4 +75,4 @@ def setup_logging(log_path):
 if __name__ == '__main__':
     foo = 'bar'
     logger.info(f'example {foo} test')
-
+    logger.opt(exception=True).debug('something bad happened')
