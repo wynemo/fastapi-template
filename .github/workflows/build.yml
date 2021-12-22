@@ -1,0 +1,19 @@
+#github worflows build.yml
+name: build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: debian-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+    with:
+      python-version: '3.8'
+      architecture: 'x64'
+    - run: pip install -r requirements.txt
+    - run: sphinx-build -b html source build
