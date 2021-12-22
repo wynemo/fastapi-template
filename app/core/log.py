@@ -1,9 +1,12 @@
 # encoding=utf-8
+import datetime
 import logging
 import os
 import sys
 
 import loguru
+
+from app.core.config import settings
 
 __all__ = ['logger', 'LOG_LEVEL', 'JSON_LOGS']
 
@@ -60,17 +63,46 @@ def setup_logging(log_path):
     # configure loguru
     logger.configure(handlers=[{"sink": sys.stdout, "serialize": JSON_LOGS, "level": LOG_LEVEL}])
     # add new configuration
+    add_file_log(log_path)
+
+class Rotator:
+
+    def __init__(self, *, size, at):
+        now = datetime.datetime.now()
+
+        self._size_limit = size
+        self._time_limit = now.replace(hour=at.hour, minute=at.minute, second=at.second)
+
+        if now >= self._time_limit:
+            # The current time is already past the target time so it would rotate already.
+            # Add one day to prevent an immediate rotation.
+            self._time_limit += datetime.timedelta(days=1)
+
+    def should_rotate(self, message, file):
+        file.seek(0, 2)
+        if file.tell() + len(message) > self._size_limit:
+            return True
+        if message.record["time"].timestamp() > self._time_limit.timestamp():
+            self._time_limit += datetime.timedelta(days=1)
+            return True
+        return False
+
+def add_file_log(log_path, _filter=lambda _: True):
+    rotator = Rotator(size=settings.log_rotation_size,
+                      at=datetime.datetime.strptime(settings.log_rotation_time, "%H:%M"))
     logger.add(
-        log_path, #log file path
-        level=LOG_LEVEL, #logging level
+        log_path,  # log file path
+        level=LOG_LEVEL,  # logging level
         # format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}", #format of log
-        enqueue=True, # set to true for async or multiprocessing logging
-        backtrace=False, # turn to false if in production to prevent data leaking
-        rotation="10 MB", #file size to rotate
-        retention="10 Days", # how long a the logging data persists
-        compression="zip", # log rotation compression
-        serialize=JSON_LOGS, # if you want it JSON style, set to true. But also change the format
+        enqueue=True,  # set to true for async or multiprocessing logging
+        backtrace=False,  # turn to false if in production to prevent data leaking
+        rotation=rotator.should_rotate,  # file size or time to rotate
+        retention="10 Days",  # how long a the logging data persists
+        compression="zip",  # log rotation compression
+        serialize=JSON_LOGS,  # if you want it JSON style, set to true. But also change the format
+        filter=_filter,
     )
+
 
 if __name__ == '__main__':
     foo = 'bar'
