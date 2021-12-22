@@ -107,4 +107,4 @@ def add_file_log(log_path, _filter=lambda _: True):
 if __name__ == '__main__':
     foo = 'bar'
     logger.info(f'example {foo} test')
-
+    logger.opt(exception=True).debug('something bad happened')
