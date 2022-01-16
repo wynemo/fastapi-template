@@ -4,4 +4,4 @@ python-language-server[all]
 flake8
 pylint
 pytest
-pytest-timestamper==0.0.9
+pytest-timestamper
