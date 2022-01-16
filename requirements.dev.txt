@@ -1,4 +1,5 @@
 -r requirements.txt
 
 python-language-server[all]
-
+flake8
+pylintpytest-timestamper==0.0.9
