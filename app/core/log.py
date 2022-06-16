@@ -11,8 +11,6 @@ from app.core.config import settings
 __all__ = ['logger', 'LOG_LEVEL', 'JSON_LOGS']
 
 logger = loguru.logger
-LOG_LEVEL = get_log_level()
-JSON_LOGS = True if os.environ.get("JSON_LOGS", "0") == "1" else False
 
 def get_log_level():
     try:
@@ -48,8 +46,11 @@ class InterceptHandler(logging.Handler):
 
         logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 
+LOG_LEVEL = get_log_level()
+JSON_LOGS = True if os.environ.get("JSON_LOGS", "0") == "1" else False
 
-def setup_logging(log_path):
+
+def setup_logging(log_path, _filter=None, _format=None):
     # intercept everything at the root logger
     logging.root.handlers = [InterceptHandler()]
     logging.root.setLevel(LOG_LEVEL)
@@ -63,7 +64,7 @@ def setup_logging(log_path):
     # configure loguru
     logger.configure(handlers=[{"sink": sys.stdout, "serialize": JSON_LOGS, "level": LOG_LEVEL}])
     # add new configuration
-    add_file_log(log_path)
+    add_file_log(log_path, _filter=_filter, _format=_format)
 
 class Rotator:
 
@@ -87,12 +88,13 @@ class Rotator:
             return True
         return False
 
-def add_file_log(log_path, _filter=lambda _: True):
+def add_file_log(log_path, _filter=None, _format=None):
     rotator = Rotator(size=settings.log_rotation_size,
                       at=datetime.datetime.strptime(settings.log_rotation_time, "%H:%M"))
     logger.add(
         log_path,  # log file path
         level=LOG_LEVEL,  # logging level
+        format=_format,
         # format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}", #format of log
         enqueue=True,  # set to true for async or multiprocessing logging
         backtrace=False,  # turn to false if in production to prevent data leaking
