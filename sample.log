@@ -1,0 +1,10 @@
+2022-06-16 at 16:07:40 | INFO | None | Started server process [86229]
+2022-06-16 at 16:07:40 | INFO | None | Waiting for application startup.
+2022-06-16 at 16:07:40 | INFO | None | Application startup complete.
+2022-06-16 at 16:07:40 | INFO | None | Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2022-06-16 at 16:07:51 | INFO | 1e6d2857-fcfe-4f39-913a-470fa7f694d4 | request received (in middlware)
+2022-06-16 at 16:07:51 | INFO | 1e6d2857-fcfe-4f39-913a-470fa7f694d4 | dep start
+2022-06-16 at 16:07:51 | INFO | 1e6d2857-fcfe-4f39-913a-470fa7f694d4 | message from root hanlder
+2022-06-16 at 16:07:51 | INFO | 1e6d2857-fcfe-4f39-913a-470fa7f694d4 | in test func
+2022-06-16 at 16:07:54 | INFO | 1e6d2857-fcfe-4f39-913a-470fa7f694d4 | request finished (in middleware)
+
