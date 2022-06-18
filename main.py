@@ -39,9 +39,9 @@ class RequestContextLogMiddleware(BaseHTTPMiddleware):
 def get_request_id() -> str:
     return _request_id_ctx_var.get()
 
-def filter_wsd_log(record):
+def patch_log(record):
+    print(record)
     record["extra"]["request_id"] = get_request_id()
-    return True
 
 async def dep():
     logger.info("dep start")
@@ -65,5 +65,5 @@ async def foo():
 
 if __name__ == "__main__":
     app.add_middleware(RequestContextLogMiddleware)
-    setup_logging('/tmp/logs/app.log', filter_wsd_log, _format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {extra[request_id]} | {message}")
+    setup_logging('/tmp/logs/app.log', patch_log, _format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {extra[request_id]} | {message}")
     uvicorn.run(app, host="0.0.0.0", port=8000)

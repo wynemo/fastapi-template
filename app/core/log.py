@@ -50,7 +50,7 @@ LOG_LEVEL = get_log_level()
 JSON_LOGS = True if os.environ.get("JSON_LOGS", "0") == "1" else False
 
 
-def setup_logging(log_path, _filter=None, _format=None):
+def setup_logging(log_path, patcher=None, _format=None):
     # intercept everything at the root logger
     logging.root.handlers = [InterceptHandler()]
     logging.root.setLevel(LOG_LEVEL)
@@ -62,9 +62,9 @@ def setup_logging(log_path, _filter=None, _format=None):
         logging.getLogger(name).propagate = True
 
     # configure loguru
-    logger.configure(handlers=[{"sink": sys.stdout, "serialize": JSON_LOGS, "level": LOG_LEVEL}])
+    logger.configure(handlers=[{"sink": sys.stdout, "serialize": JSON_LOGS, "level": LOG_LEVEL}], patcher=patcher)
     # add new configuration
-    add_file_log(log_path, _filter=_filter, _format=_format)
+    add_file_log(log_path, _format=_format)
 
 class Rotator:
 
@@ -88,7 +88,7 @@ class Rotator:
             return True
         return False
 
-def add_file_log(log_path, _filter=None, _format=None):
+def add_file_log(log_path, _format=None):
     rotator = Rotator(size=settings.log_rotation_size,
                       at=datetime.datetime.strptime(settings.log_rotation_time, "%H:%M"))
     logger.add(
@@ -102,7 +102,6 @@ def add_file_log(log_path, _filter=None, _format=None):
         retention="10 Days",  # how long a the logging data persists
         compression="zip",  # log rotation compression
         serialize=JSON_LOGS,  # if you want it JSON style, set to true. But also change the format
-        filter=_filter,
     )
 
 
