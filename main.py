@@ -40,7 +40,6 @@ def get_request_id() -> str:
     return _request_id_ctx_var.get()
 
 def patch_log(record):
-    print(record)
     record["extra"]["request_id"] = get_request_id()
 
 async def dep():

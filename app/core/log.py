@@ -62,7 +62,7 @@ def setup_logging(log_path, patcher=None, _format=None):
         logging.getLogger(name).propagate = True
 
     # configure loguru
-    logger.configure(handlers=[{"sink": sys.stdout, "serialize": JSON_LOGS, "level": LOG_LEVEL}], patcher=patcher)
+    logger.configure(handlers=[{"sink": sys.stdout, "serialize": JSON_LOGS, "level": LOG_LEVEL, "format": _format}], patcher=patcher)
     # add new configuration
     add_file_log(log_path, _format=_format)
 
