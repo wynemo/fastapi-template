@@ -1,0 +1,13 @@
+services:
+  demo:
+    build: .
+    container_name: fastapi-template
+    # env_file:
+    # - ./settings.env
+    volumes:
+      - ./:/app/
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    # 使用宿主网络
+    # network_mode: host
