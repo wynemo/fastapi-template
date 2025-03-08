@@ -5,3 +5,5 @@ venv
 myenv
 
 *.pyc
+
+logs/
