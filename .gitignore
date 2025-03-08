@@ -1,3 +1,7 @@
 venv
 .DS_Store
 
+venv
+myenv
+
+*.pyc
