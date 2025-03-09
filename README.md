@@ -29,6 +29,7 @@
 ```
 
 ## 快速开始
+linux、macos 应该都是能跑的，没有测windows
 
 1. 安装uv:
 
