@@ -107,6 +107,7 @@ if __name__ == "__main__":
     _format = (
         "{time:YYYY-MM-DD at HH:mm:ss} | {level} | {extra[request_id]} | {message}"
     )
+    # 文件日志，由父进程处理，避免多个进程同时写入文件导致的文件损坏
     add_file_log("logs/app.log", _format=_format, patcher=patch_log, workers=workers)
 
     try:
