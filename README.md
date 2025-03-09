@@ -30,10 +30,9 @@
 
 ## 快速开始
 
-1. 安装依赖:
-```bash
-pip install -r requirements.txt
-```
+linux、macos 应该都是能跑的，没有测windows
+
+1. 安装uv:
 
 2. 开发模式运行:
 ```bash
