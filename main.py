@@ -1,51 +1,17 @@
-from contextvars import ContextVar
-from uuid import uuid4
 import logging
 import sys
 import time
 
 from fastapi import Depends, FastAPI
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-from starlette.requests import Request
 from starlette.concurrency import run_in_threadpool
 from uvicorn import Config, Server
 from uvicorn.supervisors import Multiprocess
 
 from app.core.log import setup_logging, logger, add_file_log
+from app.core.middleware import RequestContextLogMiddleware, patch_log
 import argparse
 
-REQUEST_ID_CTX_KEY = 'request_id'
-_request_id_ctx_var: ContextVar[str] = ContextVar(REQUEST_ID_CTX_KEY, default=None)
-# print('top id is', id(_request_id_ctx_var))
 app = FastAPI()
-
-class RequestContextLogMiddleware(BaseHTTPMiddleware):
-
-    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint):
-        request_id = _request_id_ctx_var.set(str(uuid4()))
-
-        logger.info(
-            "request received (in middleware)",
-            method=request.method,
-            path=request.url.path,
-            client=request.client and request.client.host,
-            ua=request.headers.get("User-Agent"),
-        )
-
-        response = await call_next(request)
-
-        logger.info("request finished (in middleware)")
-        response.headers['X-Request-ID'] = get_request_id()
-
-        _request_id_ctx_var.reset(request_id)
-
-        return response
-
-def get_request_id() -> str:
-    return _request_id_ctx_var.get()
-
-def patch_log(record):
-    record["extra"]["request_id"] = get_request_id()
 
 async def dep():
     logger.info("dep start")
