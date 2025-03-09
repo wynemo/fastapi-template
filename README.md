@@ -6,10 +6,21 @@
 
 - **FastAPI框架**: 使用现代化的Python FastAPI框架，提供高性能的API服务
 - **消息队列支持**: 集成Kombu消息队列，支持Redis作为消息代理
-- **日志系统**: 
+- **日志系统**:
   - 使用Loguru进行日志管理
   - 支持日志轮转
   - 支持多进程日志处理 (uvicorn 多 worker 模式下, 文件日志由主进程管理)
+
+<details>
+<summary>实现多进程日志支持的技术细节</summary>
+
+😀不过多进程还是需要好多hack啊
+uvicorn又是用的spawn
+😅不过好像也没多大卵用，毕竟gunicorn已经有这些了~
+算是又学习了下 spawn模式，python传递变量到子进程，序列化、反序列化
+看了下uvicorn、loguru的代码
+</details>
+
 - **中间件支持**: 包含请求上下文日志中间件
 - **多进程支持**: 支持多worker部署模式
 - **Docker支持**: 提供Dockerfile和docker-compose配置
