@@ -44,9 +44,9 @@ uvicorn又是用的spawn
 ```
 
 ## 快速开始
-linux、macos 应该都是能跑的，没有测windows
+linux、macos 都是能跑的，windows也能跑
 
-1. 安装uv:
+1. 安装uv: https://docs.astral.sh/uv/getting-started/installation/#installation-methods
 
 2. 开发模式运行:
 ```bash
