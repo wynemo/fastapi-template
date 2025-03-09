@@ -41,7 +41,10 @@ app.add_middleware(RequestContextLogMiddleware)
 
 
 class MyConfig(Config):
-    """自定义配置类,继承自uvicorn的Config类"""
+    """
+    自定义配置类,继承自uvicorn的Config类
+    uvicorn 用的spawn，需要通过config把logger._core 传递到子进程里
+    """
 
     def __init__(self, *args, **kwargs):
         """
@@ -58,7 +61,7 @@ class MyConfig(Config):
         """
         配置日志
         重写父类的configure_logging方法
-        确保logger使用相同的core对象
+        确保子进程logger使用父进程相同的core对象
         设置日志配置
         """
         from loguru import logger as _logger
