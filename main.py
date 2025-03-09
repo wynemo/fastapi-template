@@ -1,3 +1,4 @@
+import argparse
 import logging
 import sys
 import time
@@ -7,33 +8,37 @@ from starlette.concurrency import run_in_threadpool
 from uvicorn import Config, Server
 from uvicorn.supervisors import Multiprocess
 
-from app.core.log import setup_logging, logger, add_file_log
+from app.core.log import add_file_log, logger, setup_logging
 from app.core.middleware import RequestContextLogMiddleware, patch_log
-import argparse
 
 app = FastAPI()
+
 
 async def dep():
     logger.info("dep start")
     return "foo"
 
+
 def test_func():
-    logger.info('in test func')
+    logger.info("in test func")
     time.sleep(3)
 
 
 @app.get("/")
 async def root(value: str = Depends(dep)):
-    logger.info('message from root hanlder')
+    logger.info("message from root hanlder")
     await run_in_threadpool(test_func)
     return {"message": value}
 
+
 @app.get("/foo")
 async def foo():
-    logger.info('message from foo hanlder')
+    logger.info("message from foo hanlder")
     return {"message": "Hello World"}
 
+
 app.add_middleware(RequestContextLogMiddleware)
+
 
 class MyConfig(Config):
     """自定义配置类,继承自uvicorn的Config类"""
@@ -96,11 +101,10 @@ if __name__ == "__main__":
     if workers > 1:
         logger.remove()
     # # 添加文件 sink
-    _format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {extra[request_id]} | {message}"
-    add_file_log("logs/app.log",
-        _format=_format,
-        patcher=patch_log,
-        workers=workers)
+    _format = (
+        "{time:YYYY-MM-DD at HH:mm:ss} | {level} | {extra[request_id]} | {message}"
+    )
+    add_file_log("logs/app.log", _format=_format, patcher=patch_log, workers=workers)
 
     try:
         # 根据workers数量选择启动模式
