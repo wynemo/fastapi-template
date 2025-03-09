@@ -30,8 +30,6 @@
 
 ## 快速开始
 
-linux、macos 应该都是能跑的，没有测windows
-
 1. 安装uv:
 
 2. 开发模式运行:
@@ -44,3 +42,9 @@ uv run main.py
 uv run main.py --workers 2 --port 8000
 ```
 注：现在uvicorn worker死掉以后 还可以拉起来 不需要用gunicorn了 可以看 https://github.com/encode/uvicorn/issues/517
+
+4. docker compose 运行:
+```bash
+rm -rf .venv
+docker compose up
+```
