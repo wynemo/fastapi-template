@@ -51,10 +51,8 @@ class MyConfig(Config):
         """
         初始化方法
         保存logger的core对象,并调用父类初始化
-        Args:
-            *args: 可变位置参数
-            **kwargs: 可变关键字参数
         """
+        # 这里core.handlers 里只有文件的handler
         self.core = copy.copy(logger._core)  # _core 是可以序列化的，可以用多进程spawn方式传递
         super().__init__(*args, **kwargs)
 
@@ -62,7 +60,7 @@ class MyConfig(Config):
         """
         配置日志
         重写父类的configure_logging方法
-        确保子进程logger使用父进程相同的core对象
+        确保子进程logger使用父进程传递过来的core对象
         设置日志配置
         """
         from loguru import logger as _logger
@@ -77,12 +75,14 @@ class MyConfig(Config):
 
             setup_logging(need_stream_handler=False)
         else:
+            # 添加一个handler后
+            # 这里loguru logger._core.handlers 会浅拷贝，生成一个新的对象
+            # self.core.handlers 还是引用的原有的对像
+            # 而原有的对象里只有文件的handler, 这样才能传递到子进程里 (可序列化)
             _logger.add(sys.stderr, level=logging.INFO)
 
             setup_logging(need_stream_handler=False)
 
-            # print('102-----------', self.core.handlers)
-            # print('103-----------', _logger._core.handlers)
 
 
 
