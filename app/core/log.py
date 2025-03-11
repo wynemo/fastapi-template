@@ -61,19 +61,9 @@ LOG_LEVEL = get_log_level()
 JSON_LOGS = True if os.environ.get("JSON_LOGS", "0") == "1" else False
 
 
-def setup_logging(need_stream_handler=False):
+def setup_logging():
     # 设置根日志记录器的处理器，包括拦截器和流处理器
-    # 使用 NTPTimeFormatter 替换原来的 Formatter
-    stream_handler = logging.StreamHandler()
-    formatter = logging.Formatter(
-        "%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(funcName)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    stream_handler.setFormatter(formatter)
-    if need_stream_handler:
-        logging.root.handlers = [InterceptHandler(), stream_handler]
-    else:
-        logging.root.handlers = [InterceptHandler()]
+    logging.root.handlers = [InterceptHandler()]
     # 设置根日志记录器的日志级别
     logging.root.setLevel(LOG_LEVEL)
 

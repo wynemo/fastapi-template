@@ -73,7 +73,7 @@ class MyConfig(Config):
 
             _logger.add(sys.stderr, level=logging.INFO)
 
-            setup_logging(need_stream_handler=False)
+            setup_logging()
         else:
             # 添加一个handler后
             # 这里loguru logger._core.handlers 会浅拷贝，生成一个新的对象
@@ -81,7 +81,7 @@ class MyConfig(Config):
             # 而原有的对象里只有文件的handler, 这样才能传递到子进程里 (可序列化)
             _logger.add(sys.stderr, level=logging.INFO)
 
-            setup_logging(need_stream_handler=False)
+            setup_logging()
 
 
 
