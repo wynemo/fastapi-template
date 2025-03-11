@@ -1,4 +1,5 @@
 import argparse
+import copy
 import logging
 import sys
 import time
@@ -54,7 +55,7 @@ class MyConfig(Config):
             *args: 可变位置参数
             **kwargs: 可变关键字参数
         """
-        self.core = logger._core  # _core 是可以序列化的，可以用多进程spawn方式传递
+        self.core = copy.copy(logger._core)  # _core 是可以序列化的，可以用多进程spawn方式传递
         super().__init__(*args, **kwargs)
 
     def configure_logging(self) -> None:
@@ -67,19 +68,22 @@ class MyConfig(Config):
         from loguru import logger as _logger
 
         super().configure_logging()
-        if not _logger._core is self.core:
+        if not _logger._core.handlers is self.core.handlers:
             # 父进程里 不会进入这里
             # 子进程里 会进入这里， 使用父进程传递进来的core对象
             _logger._core = self.core
-            _logger.add(sys.stdout, level=logging.INFO)
+
+            _logger.add(sys.stderr, level=logging.INFO)
+
             setup_logging(need_stream_handler=False)
         else:
-            if self.workers > 1:
-                # logger 调用了 logger.remove() 没有默认打印东西到控制台的handler，需要stream handler
-                # todo stream hanler 看上去像 loguru 的handler， 现在样式不一样
-                setup_logging(need_stream_handler=True)
-            else:
-                setup_logging(need_stream_handler=False)
+            _logger.add(sys.stderr, level=logging.INFO)
+
+            setup_logging(need_stream_handler=False)
+
+            # print('102-----------', self.core.handlers)
+            # print('103-----------', _logger._core.handlers)
+
 
 
 # 启动 FastAPI 应用
@@ -101,8 +105,7 @@ if __name__ == "__main__":
     # 配置日志
     # 重置logger，去掉默认带的sink，否则默认它带的stderr sink无法通过spawn方式传递过去，无法序列化
     # 会报错 TypeError: cannot pickle '_io.TextIOWrapper' object
-    if workers > 1:
-        logger.remove()
+    logger.remove()
     # # 添加文件 sink
     _format = (
         "{time:YYYY-MM-DD at HH:mm:ss} | {level} | {extra[request_id]} | {message}"
