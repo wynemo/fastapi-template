@@ -2,10 +2,9 @@ import copy
 import logging
 import sys
 
-from loguru import logger
 from uvicorn import Config
 
-from app.core.log import setup_logging
+from app.core.log import setup_logging, logger
 
 class MyConfig(Config):
     """
