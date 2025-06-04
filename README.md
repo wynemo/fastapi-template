@@ -88,6 +88,14 @@ frontend目录
 
 这样既不用开两个ide窗口，又能有足够上下文让大模型写代码方便
 
+然后前端代码使用pnpm，后端python代码使用uv
+
+前端打包到frontend/dist目录，然后挂载到fastapi/uvicorn的static目录
+
+这里uvicorn是改造过的，静态文件不会缓存html与txt，避免重新部署nextjs出现404的情况（html与js不一致）
+
+基本上开箱即用，都不用配置nginx，开发足够了，部署也凑合
+
 框架使用nextjs，tailwind, typesript
 
 不能用antd
