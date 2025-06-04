@@ -69,3 +69,11 @@ uv run main.py --workers 2 --port 8000
 rm -rf .venv
 docker compose up
 ```
+
+## 前端
+
+frontend目录
+
+框架使用nextjs，tailwind, 
+
+https://github.com/vercel/swr
