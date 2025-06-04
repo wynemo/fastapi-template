@@ -76,6 +76,18 @@ docker compose up
 
 frontend目录
 
+后端python代码放外层，把frontend目录放在项目根目录下，这样的层级结构的好处是
+
+打开工程，前端代码也可使用知道后端代码的上下文，这样大模型写前端代码方便，（都不用写文档了😅）
+
+另外python项目放在外层，.venv放在外层，ide才能找到python虚拟环境，放子目录不好（pyproject.toml），感知不到虚拟环境，ide会报错
+
+而对前端代码来说没有这个问题，pnpm一装，ide就能找到，不需要额外配置
+
+所以即使说你是前端项目也是另外一个工程，也推荐把前端代码放在frontend目录
+
+这样既不用开两个ide窗口，又能有足够上下文让大模型写代码方便
+
 框架使用nextjs，tailwind, typesript
 
 不能用antd
