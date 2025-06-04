@@ -74,6 +74,10 @@ docker compose up
 
 frontend目录
 
-框架使用nextjs，tailwind, 
+框架使用nextjs，tailwind, typesript
+
+不能用antd
+
+前端实现一个首页登录，以及用户管理就行了
 
 https://github.com/vercel/swr
