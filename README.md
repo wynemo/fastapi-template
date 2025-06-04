@@ -92,7 +92,7 @@ frontend目录
 
 前端打包到frontend/dist目录，然后挂载到fastapi/uvicorn的static目录
 
-这里uvicorn是改造过的，静态文件不会缓存html与txt，避免重新部署nextjs出现404的情况（html与js不一致）
+这里uvicorn是改造过的，静态文件不会缓存html与txt，避免重新部署nextjs打包出来的文件出现404的情况（html与js不一致）
 
 基本上开箱即用，都不用配置nginx，开发足够了，部署也凑合
 
