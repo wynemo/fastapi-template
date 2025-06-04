@@ -1,8 +1,12 @@
 import argparse
+import os
 import time
 
 from fastapi import Depends, FastAPI
+from fastapi.responses import FileResponse, Response
+from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
+from starlette.types import Scope
 from uvicorn import Server
 from uvicorn.supervisors import Multiprocess
 
@@ -38,6 +42,43 @@ async def foo():
 
 app.add_middleware(RequestContextLogMiddleware)
 
+# todo add cors middleware
+
+
+class StaticFilesCache(StaticFiles):
+    """
+    这个类对html以及txt不缓存，其他文件缓存
+    不缓存html，txt的原因是避免nextjs出现404的情况（html与js不一致）
+    """
+
+    def __init__(self, *args, cachecontrol="no-cache, no-store, must-revalidate", **kwargs):
+        self.cachecontrol = cachecontrol
+        super().__init__(*args, **kwargs)
+
+    def file_response(
+        self,
+        full_path,
+        stat_result: os.stat_result,
+        scope: Scope,
+        status_code: int = 200,
+    ) -> Response:
+        if full_path.endswith(".html") or full_path.endswith(".txt"):
+            resp: Response = FileResponse(full_path, status_code=status_code, stat_result=stat_result)
+            resp.headers.setdefault("Cache-Control", self.cachecontrol)
+            return resp
+        else:
+            return super().file_response(full_path, stat_result, scope, status_code)
+
+
+# # # http://127.0.0.1:8000/index.html 访问前端页面
+try:
+    front_folder = os.path.join(os.path.dirname(__file__), "frontend/dist")
+    os.makedirs(front_folder, exist_ok=True)
+    # 挂载静态文件目录, 用于提供前端页面
+    app.mount("/", StaticFilesCache(directory=front_folder), name="static")
+except Exception as e:
+    logger.error(f"静态文件目录挂载失败: {e}")
+
 # 启动 FastAPI 应用
 # 使用 uvicorn 启动 FastAPI 应用，监听所有 IP 地址，端口为 8000, worker数量默认为1
 # uv run uvicorn main:app 开发模式
@@ -59,9 +100,7 @@ if __name__ == "__main__":
     # 会报错 TypeError: cannot pickle '_io.TextIOWrapper' object
     logger.remove()
     # # 添加文件 sink
-    _format = (
-        "{time:YYYY-MM-DD at HH:mm:ss} | {level} | {extra[request_id]} | {message}"
-    )
+    _format = "{time:YYYY-MM-DD at HH:mm:ss} | {level} | {extra[request_id]} | {message}"
     # 文件日志，由父进程处理，避免多个进程同时写入文件导致的文件损坏
     add_file_log("logs/app.log", _format=_format, patcher=patch_log, workers=workers)
 

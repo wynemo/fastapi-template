@@ -1,0 +1,26 @@
+{
+    //save
+    "files.autoSave": "onFocusChange",
+    "editor.formatOnSave": true,
+    //python & ruff
+    //python
+    "python.venvPath": ".venv",
+    "[python]": {
+        "diffEditor.ignoreTrimWhitespace": false,
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports": "always"
+        },
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    },
+    "python.languageServer": "Default",
+    //frontend shit
+    "npm.packageManager": "pnpm",
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    },
+}
