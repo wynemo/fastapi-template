@@ -1,6 +1,8 @@
 # FastAPI Template
 
-一个基于FastAPI框架的项目模板
+一个基于FastAPI框架的项目模板 前端使用nextjs
+
+使用sqlmodel作为orm
 
 ## 主要特性
 
