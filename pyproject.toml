@@ -18,7 +18,10 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["python-lsp-server"]
+dev = [
+    "pytest>=8.4.1",
+    "python-lsp-server",
+]
 
 [tool.ruff]
 line-length = 120
