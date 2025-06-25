@@ -1,15 +1,15 @@
 import inspect
-from typing import Callable, Any
+from typing import Any, Callable
 
 from fastapi import Depends
 from fastapi.encoders import jsonable_encoder
 
-from app.http_tool import CODE_SUCCESS, CODE_ERROR
+from app.http_tool import CODE_ERROR, CODE_SUCCESS
 from app.schemas.common import CommonResponse
 
 
 class fastapi_compatible_method:
-    """ Decorate a method to make it compatible with FastAPI """
+    """Decorate a method to make it compatible with FastAPI"""
 
     # It is a descriptor: it wraps a method, and as soon as the method gets associated with a class,
     # it patches the `self` argument with the class dependency and dissolves without leaving a trace.
@@ -20,13 +20,13 @@ class fastapi_compatible_method:
     def __set_name__(self, cls: type, method_name: str):
         # Patch the function to become compatible with FastAPI.
         # We only have to declare `self` as a dependency on the class itself: `self = Depends(cls)`.
-        patched_method = set_parameter_default(self.method, 'self', Depends(cls))
+        patched_method = set_parameter_default(self.method, "self", Depends(cls))
         # Put the method onto the class. This makes our descriptor go completely away
         return setattr(cls, method_name, patched_method)
 
 
 def set_parameter_default(func: Callable, param: str, default: Any) -> Callable:
-    """ Set a default value for one function parameter; make all other defaults equal to `...`
+    """Set a default value for one function parameter; make all other defaults equal to `...`
 
     This function is normally used to set a default value for `self` or `cls`:
     weird magic that makes FastAPI treat the argument as a dependency.
@@ -55,12 +55,11 @@ def set_parameter_default(func: Callable, param: str, default: Any) -> Callable:
         new_parameters.append(parameter)
 
     # Replace the signature
-    setattr(func, '__signature__', sig.replace(parameters=new_parameters))
+    func.__signature__ = sig.replace(parameters=new_parameters)
     return func
 
 
 class BaseView(object):
-
     @classmethod
     def common_response(cls, code, msg, data=None):
         return jsonable_encoder(CommonResponse(code=code, msg=msg, data=data))
