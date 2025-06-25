@@ -6,9 +6,10 @@ import os
 from itertools import chain
 
 import loguru
+
 from app.core.config import settings
 
-__all__ = ["logger", "LOG_LEVEL", "JSON_LOGS"]
+__all__ = ["JSON_LOGS", "LOG_LEVEL", "logger"]
 
 logger = loguru.logger
 
@@ -52,9 +53,7 @@ class InterceptHandler(logging.Handler):
             depth += 1
 
         # 使用loguru记录日志,传入调用深度和异常信息
-        logger.opt(depth=depth, exception=record.exc_info).log(
-            level, record.getMessage()
-        )
+        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 
 
 LOG_LEVEL = get_log_level()
@@ -88,7 +87,6 @@ def setup_logging():
 
 
 class Rotator:
-
     def __init__(self, *, size, at):
         now = datetime.datetime.now()
 
