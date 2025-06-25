@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.10.1"
-          architecture: "x64"
+          python-version: '3.12'
       - run: pip install uv
       - run: uv run isort main.py
       - run: uv run black main.py
