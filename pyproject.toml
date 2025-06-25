@@ -50,6 +50,7 @@ select = [
     "S", # flake8-bandit (security)
 ]
 extend-select = ["I"] # isort
+ignore = ["RUF001", "RUF002", "RUF003"]
 
 # Logger objects that should be checked
 logger-objects = ["app.logger", "logger"]
