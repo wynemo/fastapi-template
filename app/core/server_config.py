@@ -1,10 +1,10 @@
-import copy
 import logging
 import sys
 
 from uvicorn import Config
 
-from app.core.log import setup_logging, logger
+from app.core.log import logger, setup_logging
+
 
 class MyConfig(Config):
     """
@@ -18,7 +18,7 @@ class MyConfig(Config):
         保存logger的core对象,并调用父类初始化
         """
         # 这里core.handlers 里只有文件的handler
-        self.core = copy.copy(logger._core)  # _core 是可以序列化的，可以用多进程spawn方式传递
+        self.handlers = logger._core.handlers
         super().__init__(*args, **kwargs)
 
     def configure_logging(self) -> None:
@@ -30,10 +30,10 @@ class MyConfig(Config):
         """
 
         super().configure_logging()
-        if not logger._core.handlers is self.core.handlers:
+        if logger._core.handlers is not self.handlers:
             # 父进程里 不会进入这里
             # 子进程里 会进入这里， 使用父进程传递进来的core对象
-            logger._core = self.core
+            logger._core.handlers = self.handlers
 
             logger.add(sys.stderr, level=logging.INFO)
 
@@ -41,7 +41,7 @@ class MyConfig(Config):
         else:
             # 添加一个handler后
             # 这里loguru logger._core.handlers 会浅拷贝，生成一个新的对象
-            # self.core.handlers 还是引用的原有的对像
+            # self.handlers 还是引用的原有的对像
             # 而原有的对象里只有文件的handler, 这样才能传递到子进程里 (可序列化)
             logger.add(sys.stderr, level=logging.INFO)
 
