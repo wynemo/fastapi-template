@@ -79,13 +79,16 @@ def test_myconfig_initialization_core_copying():
     pristine_logger_core = logger._core
     pristine_logger_handlers = pristine_logger_core.handlers.copy()
 
-    # Temporarily disable MyConfig.configure_logging to isolate the self.core assignment
+    # Temporarily disable MyConfig.configure_logging to isolate the self.handlers assignment
     with mock.patch.object(MyConfig, "configure_logging", lambda x: None):
-        config_for_core_check = MyConfig(app=None, log_level="info")
+        config_for_handlers_check = MyConfig(app=None, log_level="info")
 
-    assert config_for_core_check.core is not pristine_logger_core, "config.core should be a new object (a copy)"
-    assert config_for_core_check.core.handlers == pristine_logger_handlers, (
-        "config.core.handlers should be a copy of the handlers from logger._core at the moment of copy"
+    # MyConfig.__init__ assigns logger._core.handlers directly to self.handlers, it's not a copy.
+    # So, config_for_handlers_check.handlers should be the same object as pristine_logger_core.handlers
+    # (assuming pristine_logger_core.handlers itself hasn't changed identity between its capture and MyConfig init).
+    assert hasattr(config_for_handlers_check, "handlers"), "MyConfig instance should have a 'handlers' attribute"
+    assert config_for_handlers_check.handlers is pristine_logger_core.handlers, (
+        "config.handlers should be the same object as logger._core.handlers at the time of MyConfig initialization"
     )
     # Ensure logger._core itself was not altered by the MyConfig(app=None) call with configure_logging mocked
     assert logger._core is pristine_logger_core, (
@@ -127,32 +130,39 @@ def test_myconfig_configure_logging_parent_process_scenario(
     config = myconfig_instance_no_init_logging  # Use the fixture
 
     # Pre-condition for "else" (parent) path:
-    # After MyConfig's __init__ (with configure_logging no-op'd by fixture),
-    # config.core.handlers should be the same dict object as logger._core.handlers.
-    # This is because self.core = copy.copy(logger._core) makes self.core.handlers
-    # refer to the same dict as logger._core.handlers.
-    assert logger._core.handlers is config.core.handlers, (
-        "Pre-condition: logger._core.handlers should be the same object as config.core.handlers"
+    # In MyConfig.__init__ (with configure_logging no-op'd by fixture),
+    # config.handlers was assigned from logger._core.handlers.
+    # We expect them to be the same object at this point.
+    assert hasattr(config, "handlers"), "Config instance should have 'handlers' attribute"
+    assert logger._core.handlers is config.handlers, (
+        "Pre-condition: logger._core.handlers should be the same object as config.handlers"
     )
 
-    core_identity_before_method_call = logger._core
-    copied_core_in_config = config.core  # This is the core object copied in __init__
+    # Store the identity of the handlers dict that MyConfig captured.
+    # This is what MyConfig's logic will compare against.
+    captured_handlers_in_config = config.handlers
+    original_logger_core_identity = logger._core
 
     # Call the actual configure_logging method on the instance
     with mock.patch.object(logger, "add") as mock_logger_add:
         MyConfig.configure_logging(config)  # Call the real method
 
     # Assertions for the "else" (parent) path:
-    # 1. logger._core should NOT have been replaced by the config.core that was created in __init__.
-    #    The global logger._core object's identity might change due to logger.add internal behavior,
-    #    but it should not become the 'copied_core_in_config'.
-    assert logger._core is not copied_core_in_config
+    # 1. The condition `logger._core.handlers is config.handlers` should have been true.
+    #    The test setup ensures this by making logger._core.handlers and config.handlers the same object.
+    #    The `else` block should have been executed.
 
-    # 2. logger.add was called to add the new stderr handler to the global logger
+    # 2. logger.add was called to add the new stderr handler.
+    #    This call happens in the `else` block.
     mock_logger_add.assert_called_once_with(mock_stderr, level=logging.INFO)
 
-    # 3. setup_logging was called
+    # 3. setup_logging was called (also in the `else` block).
     mock_setup_logging.assert_called_once()
+
+    # 4. It's possible that logger.add() replaces logger._core.
+    #    We are not asserting the identity of logger._core itself against its pre-call state,
+    #    as that's an internal Loguru behavior. The key is that the correct branch of logic was taken.
+    #    The fixture `reset_logger_state` will handle restoring the logger.
 
 
 @mock.patch("app.core.server_config.setup_logging")
@@ -167,34 +177,34 @@ def test_myconfig_configure_logging_child_process_scenario(
     config = myconfig_instance_no_init_logging  # Use the fixture
 
     # Simulate the child process condition: make global logger._core.handlers a *different object*
-    # than config.core.handlers (which holds the handlers from the time of __init__).
-    # This ensures `if not logger._core.handlers is self.core.handlers` is TRUE.
+    # than config.handlers (which holds the handlers from the time of __init__).
+    # This ensures `if logger._core.handlers is not self.handlers:` (from MyConfig's perspective) is TRUE.
+    assert hasattr(config, "handlers"), "Config instance should have 'handlers' attribute"
+    original_handlers_in_config = config.handlers # This is the dict MyConfig captured.
+    logger._core.handlers = {}  # Make global logger's current handlers a new, different dict object.
+    assert logger._core.handlers is not original_handlers_in_config, "Simulated condition: logger._core.handlers should differ from config.handlers"
 
-    original_global_logger_core_obj_for_restore = logger._core  # To restore at the end
-    # Ensure that config.core.handlers is different from what logger._core.handlers will be when the method is called.
-    # The fixture `myconfig_instance_no_init_logging` ensures config.core.handlers reflects the state *before* any configure_logging.
-    # Now, change the global logger's handlers dict so it's different from config.core.handlers.
-    logger._core.handlers = {}  # Make global logger's handlers a new, different dict object.
-
-    expected_logger_core_after_method = config.core  # logger._core should become config.core
 
     # Call the actual configure_logging method
     with mock.patch.object(logger, "add") as mock_logger_add:
         MyConfig.configure_logging(config)  # Call the real method
 
     # Assertions for the "if" (child) path:
-    # 1. Global logger._core should have been replaced with config.core
-    assert logger._core is expected_logger_core_after_method
+    # 1. logger._core.handlers should have been replaced with config.handlers (original_handlers_in_config).
+    #    The actual logger._core object might be different if logger.add() replaced it,
+    #    but its .handlers attribute should now be the one from config.handlers.
+    assert logger._core.handlers is original_handlers_in_config, \
+        "In child path, logger._core.handlers should be set to config.handlers"
 
-    # 2. logger.add was called to add the new stderr handler (this time to config.core, which is now logger._core)
+    # 2. logger.add was called to add the new stderr handler.
+    #    This call happens in the `if` block.
     mock_logger_add.assert_called_once_with(mock_stderr, level=logging.INFO)
 
-    # 3. setup_logging was called
+    # 3. setup_logging was called (also in the `if` block).
     mock_setup_logging.assert_called_once()
 
-    # Restore the original global logger core object to prevent side effects.
-    # The fixture also does this, but being explicit can help if fixture has issues.
-    logger._core = original_global_logger_core_obj_for_restore
+    # Note: No need to manually restore logger._core here,
+    # the `reset_logger_state` fixture handles logger state restoration.
 
 
 @mock.patch.object(UvicornConfig, "configure_logging", autospec=True)  # Outermost patch, last mock param
