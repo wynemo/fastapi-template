@@ -144,7 +144,7 @@ def test_myconfig_configure_logging_parent_process_scenario(
     original_logger_core_identity = logger._core
 
     # Call the actual configure_logging method on the instance
-    with mock.patch.object(logger, "add") as mock_logger_add:
+    with mock.patch.object(logger, "add", return_value=None) as mock_logger_add:
         MyConfig.configure_logging(config)  # Call the real method
 
     # Assertions for the "else" (parent) path:
@@ -186,7 +186,7 @@ def test_myconfig_configure_logging_child_process_scenario(
 
 
     # Call the actual configure_logging method
-    with mock.patch.object(logger, "add") as mock_logger_add:
+    with mock.patch.object(logger, "add", return_value=None) as mock_logger_add:
         MyConfig.configure_logging(config)  # Call the real method
 
     # Assertions for the "if" (child) path:
@@ -220,7 +220,8 @@ def test_myconfig_calls_super_configure_logging(
     config = myconfig_instance_no_init_logging  # Use the fixture
 
     # Call the actual configure_logging method
-    MyConfig.configure_logging(config)  # Call the real method
+    with mock.patch.object(logger, "add", return_value=None):
+        MyConfig.configure_logging(config)  # Call the real method
 
     # We are asserting that UvicornConfig.configure_logging (the super call) was called
     mock_uvicorn_config_logging_arg.assert_called_once_with(config)
